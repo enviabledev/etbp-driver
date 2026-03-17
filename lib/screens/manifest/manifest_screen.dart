@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:etbp_driver/config/theme.dart';
 import 'package:etbp_driver/core/auth/auth_provider.dart';
 import 'package:etbp_driver/core/api/endpoints.dart';
+import 'package:etbp_driver/screens/manifest/qr_scanner_screen.dart';
+import 'package:etbp_driver/models/manifest_entry.dart';
 
 class ManifestScreen extends ConsumerStatefulWidget {
   final String tripId;
@@ -46,6 +48,16 @@ class _ManifestScreenState extends ConsumerState<ManifestScreen> {
 
     return Scaffold(
       appBar: AppBar(title: Text('Manifest ($checkedIn/${_passengers.length})')),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          await Navigator.push(context, MaterialPageRoute(
+            builder: (_) => QrScannerScreen(tripId: widget.tripId, manifest: _passengers.map((p) => ManifestEntry.fromJson(p)).toList()),
+          ));
+          _load(); // Refresh after scanning
+        },
+        backgroundColor: AppTheme.primary,
+        child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+      ),
       body: Column(children: [
         Padding(padding: const EdgeInsets.all(12), child: TextField(
           onChanged: (v) => setState(() => _search = v),

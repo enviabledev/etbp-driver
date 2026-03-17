@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:etbp_driver/config/theme.dart';
 import 'package:etbp_driver/core/auth/auth_provider.dart';
 import 'package:etbp_driver/core/api/endpoints.dart';
+import 'package:etbp_driver/screens/trips/inspection_screen.dart';
+import 'package:etbp_driver/screens/trips/incident_report_screen.dart';
 
 class TripDetailScreen extends ConsumerStatefulWidget {
   final String tripId;
@@ -16,9 +20,23 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
   Map<String, dynamic>? _trip;
   bool _loading = true;
   bool _updating = false;
+  Timer? _refreshTimer;
 
   @override
-  void initState() { super.initState(); _load(); }
+  void initState() {
+    super.initState();
+    _load();
+    // Auto-refresh every 60s for active trips
+    _refreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      if (mounted && ['departed', 'en_route', 'boarding'].contains(_trip?['status'])) _load();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
 
   Future<void> _load() async {
     setState(() => _loading = true);
@@ -61,6 +79,24 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         Center(child: Container(padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
           child: Text(status.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.primary)))),
         const SizedBox(height: 16),
+
+        // Inspection card
+        if (status == 'scheduled' && t['inspection_data'] == null)
+          Card(color: AppTheme.warning.withValues(alpha: 0.1), child: ListTile(
+            leading: const Icon(Icons.checklist, color: AppTheme.warning),
+            title: const Text('Pre-Trip Inspection Required', style: TextStyle(fontWeight: FontWeight.w600)),
+            subtitle: const Text('Complete inspection before departure'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => InspectionScreen(tripId: widget.tripId))); _load(); },
+          )),
+        if (t['inspection_data'] != null)
+          Card(color: AppTheme.success.withValues(alpha: 0.05), child: ListTile(
+            leading: const Icon(Icons.check_circle, color: AppTheme.success),
+            title: const Text('Inspection Complete', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.success)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => InspectionScreen(tripId: widget.tripId, existingData: t['inspection_data']))),
+          )),
+        const SizedBox(height: 12),
 
         // Trip info card
         Card(child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -110,8 +146,47 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
             icon: const Icon(Icons.check_circle), label: const Text('Complete Trip'),
             style: ElevatedButton.styleFrom(backgroundColor: AppTheme.success)),
         ],
+        const SizedBox(height: 12),
+        // Report incident (when trip is active)
+        if (['departed', 'en_route', 'boarding'].contains(status))
+          OutlinedButton.icon(
+            onPressed: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => IncidentReportScreen(tripId: widget.tripId))); _load(); },
+            icon: const Icon(Icons.warning_amber), label: const Text('Report Incident'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 44), side: const BorderSide(color: AppTheme.warning), foregroundColor: AppTheme.warning),
+          ),
+        const SizedBox(height: 8),
+        // Navigate
+        if (['scheduled', 'boarding', 'departed', 'en_route'].contains(status)) ...[
+          OutlinedButton.icon(
+            onPressed: () => _showNavigationOptions(),
+            icon: const Icon(Icons.navigation), label: const Text('Navigate'),
+            style: OutlinedButton.styleFrom(minimumSize: const Size(double.infinity, 44)),
+          ),
+        ],
       ])),
     );
+  }
+
+  void _showNavigationOptions() {
+    final route = _trip?['route'] as Map<String, dynamic>?;
+    if (route == null) return;
+    // Determine destination based on status
+    final status = _trip?['status'] ?? '';
+    final terminal = (status == 'scheduled' || status == 'boarding')
+      ? route['origin_terminal'] as Map<String, dynamic>?
+      : route['destination_terminal'] as Map<String, dynamic>?;
+    final lat = terminal?['latitude'];
+    final lng = terminal?['longitude'];
+    if (lat == null || lng == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No coordinates available for this terminal')));
+      return;
+    }
+    showModalBottomSheet(context: context, builder: (_) => SafeArea(child: Column(mainAxisSize: MainAxisSize.min, children: [
+      ListTile(leading: const Icon(Icons.map), title: const Text('Open in Google Maps'),
+        onTap: () { Navigator.pop(context); launchUrl(Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng')); }),
+      ListTile(leading: const Icon(Icons.navigation), title: const Text('Open in Waze'),
+        onTap: () { Navigator.pop(context); launchUrl(Uri.parse('https://waze.com/ul?ll=$lat,$lng&navigate=yes')); }),
+    ])));
   }
 
   Widget _info(String label, String value) => Padding(padding: const EdgeInsets.only(bottom: 6), child: Row(children: [
