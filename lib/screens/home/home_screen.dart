@@ -14,6 +14,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<Map<String, dynamic>> _todayTrips = [];
+  List<Map<String, dynamic>> _upcomingTrips = [];
   bool _loading = true;
 
   @override
@@ -24,8 +25,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     try {
       final api = ref.read(apiClientProvider);
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final res = await api.get(Endpoints.driverTrips, queryParameters: {'date_from': today, 'date_to': today, 'limit': '10'});
-      setState(() { _todayTrips = List<Map<String, dynamic>>.from(res.data['items'] ?? []); _loading = false; });
+      final todayRes = await api.get(Endpoints.driverTrips, queryParameters: {'date_from': today, 'date_to': today, 'limit': '10'});
+      final upRes = await api.get(Endpoints.driverTrips, queryParameters: {'limit': '10'});
+      final todayItems = List<Map<String, dynamic>>.from(todayRes.data['items'] ?? []);
+      final allUpcoming = List<Map<String, dynamic>>.from(upRes.data['items'] ?? []);
+      final futureOnly = allUpcoming.where((t) => t['departure_date'] != today).toList();
+      setState(() { _todayTrips = todayItems; _upcomingTrips = futureOnly.take(3).toList(); _loading = false; });
     } catch (_) {
       setState(() => _loading = false);
     }
@@ -50,6 +55,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: const Column(children: [Icon(Icons.event_available, size: 48, color: AppTheme.textSecondary), SizedBox(height: 12), Text('No trips scheduled for today', style: TextStyle(color: AppTheme.textSecondary))]),
           )
           else ..._todayTrips.map((t) => _TripCard(trip: t, onTap: () => context.push('/trips/${t['id']}'))),
+
+          // Upcoming section
+          if (_upcomingTrips.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Text('Upcoming', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            ..._upcomingTrips.map((t) => _TripCard(trip: t, onTap: () => context.push('/trips/${t['id']}'))),
+          ],
         ]),
       ),
     );
