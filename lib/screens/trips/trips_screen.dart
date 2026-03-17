@@ -17,31 +17,48 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
   List<Map<String, dynamic>> _upcoming = [];
   List<Map<String, dynamic>> _completed = [];
   bool _loading = true;
+  String? _error;
 
   @override
   void initState() { super.initState(); _tabC = TabController(length: 2, vsync: this); _load(); }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    setState(() { _loading = true; _error = null; });
     try {
       final api = ref.read(apiClientProvider);
+
+      // Fetch upcoming trips (default: departure_date >= today)
       final upRes = await api.get(Endpoints.driverTrips, queryParameters: {'limit': '50'});
+      final upItems = upRes.data is Map ? (upRes.data['items'] ?? []) : [];
+
+      // Fetch completed trips
       final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
       final pastRes = await api.get(Endpoints.driverTrips, queryParameters: {'date_to': today, 'status': 'completed', 'limit': '50'});
+      final pastItems = pastRes.data is Map ? (pastRes.data['items'] ?? []) : [];
+
       setState(() {
-        _upcoming = List<Map<String, dynamic>>.from(upRes.data['items'] ?? []);
-        _completed = List<Map<String, dynamic>>.from(pastRes.data['items'] ?? []);
+        _upcoming = List<Map<String, dynamic>>.from(upItems);
+        _completed = List<Map<String, dynamic>>.from(pastItems);
         _loading = false;
       });
-    } catch (_) { setState(() => _loading = false); }
+    } catch (e) {
+      debugPrint('TripsScreen error: $e');
+      setState(() { _loading = false; _error = e.toString(); });
+    }
   }
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('My Trips'), bottom: TabBar(controller: _tabC, tabs: const [Tab(text: 'Upcoming'), Tab(text: 'Completed')])),
-    body: _loading ? const Center(child: CircularProgressIndicator()) : TabBarView(controller: _tabC, children: [
-      _buildList(_upcoming), _buildList(_completed),
-    ]),
+    body: _loading
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null
+            ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                Text(_error!, style: const TextStyle(color: AppTheme.error, fontSize: 13), textAlign: TextAlign.center),
+                const SizedBox(height: 12),
+                TextButton(onPressed: _load, child: const Text('Retry')),
+              ]))
+            : TabBarView(controller: _tabC, children: [_buildList(_upcoming), _buildList(_completed)]),
   );
 
   Widget _buildList(List<Map<String, dynamic>> trips) {
