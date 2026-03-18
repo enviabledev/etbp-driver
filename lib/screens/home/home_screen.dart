@@ -105,7 +105,7 @@ class _TripCard extends StatelessWidget {
         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
         child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${route['origin'] ?? '—'} → ${route['destination'] ?? '—'}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            Text(route['name'] as String? ?? '${route['origin'] ?? '—'} → ${route['destination'] ?? '—'}', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
             Text('${(trip['departure_time'] as String?)?.substring(0, 5) ?? '--:--'} • ${trip['passenger_count'] ?? 0} passengers', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
           ])),

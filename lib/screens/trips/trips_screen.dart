@@ -72,7 +72,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
           child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppTheme.border)),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
-                Expanded(child: Text('${route['origin'] ?? '—'} → ${route['destination'] ?? '—'}', style: const TextStyle(fontWeight: FontWeight.w600))),
+                Expanded(child: Text(route['name'] as String? ?? '${route['origin'] ?? '—'} → ${route['destination'] ?? '—'}', style: const TextStyle(fontWeight: FontWeight.w600), maxLines: 1, overflow: TextOverflow.ellipsis)),
                 Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
                   child: Text((t['status'] as String? ?? '').replaceAll('_', ' '), style: const TextStyle(fontSize: 11, color: AppTheme.primary))),
               ]),

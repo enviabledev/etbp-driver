@@ -28,8 +28,8 @@ class TripCard extends StatelessWidget {
         ),
         child: Row(children: [
           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('${trip.origin ?? '—'} → ${trip.destination ?? '—'}',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+            Text(trip.routeName ?? '${trip.origin ?? '—'} → ${trip.destination ?? '—'}',
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15), maxLines: 1, overflow: TextOverflow.ellipsis),
             const SizedBox(height: 4),
             Text('${trip.departureTime.substring(0, 5)} • ${trip.passengerCount}/${trip.totalSeats} pax',
                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
