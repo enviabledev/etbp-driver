@@ -9,6 +9,7 @@ class Endpoints {
   static String driverTripStatus(String id) => '/driver/trips/$id/status';
   static String driverCheckin(String tripId, String bookingId) => '/driver/trips/$tripId/checkin/$bookingId';
   static String driverTripSummary(String id) => '/driver/trips/$id/summary';
+  static String vehicleStatus(String id) => '/driver/trips/$id/vehicle-status';
   static const String registerDevice = '/notifications/register-device';
   static const String unregisterDevice = '/notifications/unregister-device';
 }
