@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:etbp_driver/config/theme.dart';
 import 'package:etbp_driver/core/auth/auth_provider.dart';
 import 'package:etbp_driver/core/api/endpoints.dart';
@@ -32,8 +31,7 @@ class _TripsScreenState extends ConsumerState<TripsScreen> with SingleTickerProv
       final upItems = upRes.data is Map ? (upRes.data['items'] ?? []) : [];
 
       // Fetch completed trips
-      final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      final pastRes = await api.get(Endpoints.driverTrips, queryParameters: {'date_to': today, 'status': 'completed', 'limit': '50'});
+      final pastRes = await api.get(Endpoints.driverTrips, queryParameters: {'status': 'completed', 'limit': '50'});
       final pastItems = pastRes.data is Map ? (pastRes.data['items'] ?? []) : [];
 
       setState(() {

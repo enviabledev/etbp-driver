@@ -126,6 +126,21 @@ class _TripDetailScreenState extends ConsumerState<TripDetailScreen> {
         ]))),
         const SizedBox(height: 16),
 
+        // Completed summary
+        if (status == 'completed') Card(
+          color: AppTheme.success.withValues(alpha: 0.05),
+          child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.check_circle, color: AppTheme.success, size: 20),
+              const SizedBox(width: 8),
+              const Text('Trip Completed', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.success)),
+            ]),
+            const SizedBox(height: 8),
+            if (t['actual_arrival_at'] != null) _info('Completed at', (t['actual_arrival_at'] as String).substring(0, 16)),
+            _info('Passengers', '${t['passengers_booked'] ?? 0} booked, ${t['passengers_checked_in'] ?? 0} checked in'),
+          ])),
+        ),
+
         // Action buttons
         if (status == 'scheduled' || status == 'boarding') ...[
           ElevatedButton.icon(onPressed: _updating ? null : () => _updateStatus('departed'),
