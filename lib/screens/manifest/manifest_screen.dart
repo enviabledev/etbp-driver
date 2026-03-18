@@ -37,7 +37,12 @@ class _ManifestScreenState extends ConsumerState<ManifestScreen> {
       await _load();
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Checked in!')));
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      final msg = e.toString();
+      if (msg.contains('402') || msg.contains('payment_required')) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Payment required. Direct passenger to the terminal agent.'), backgroundColor: AppTheme.error));
+      } else {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      }
     }
   }
 
@@ -69,14 +74,17 @@ class _ManifestScreenState extends ConsumerState<ManifestScreen> {
           itemBuilder: (_, i) {
             final p = filtered[i];
             final isCheckedIn = p['checked_in'] == true;
+            final isPaid = p['payment_status'] == 'paid';
             return ListTile(
-              leading: CircleAvatar(backgroundColor: isCheckedIn ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.border, radius: 18,
-                child: Text(p['seat_number'] ?? '?', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isCheckedIn ? AppTheme.success : AppTheme.textPrimary))),
+              leading: CircleAvatar(backgroundColor: isCheckedIn ? AppTheme.success.withValues(alpha: 0.1) : !isPaid ? AppTheme.error.withValues(alpha: 0.1) : AppTheme.border, radius: 18,
+                child: Text(p['seat_number'] ?? '?', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isCheckedIn ? AppTheme.success : !isPaid ? AppTheme.error : AppTheme.textPrimary))),
               title: Text(p['passenger_name'] ?? '—', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-              subtitle: Text(p['phone'] ?? '', style: const TextStyle(fontSize: 12)),
+              subtitle: Text(!isPaid ? 'UNPAID — direct to agent' : (p['phone'] ?? ''), style: TextStyle(fontSize: 12, color: !isPaid ? AppTheme.error : null)),
               trailing: isCheckedIn
                 ? const Icon(Icons.check_circle, color: AppTheme.success, size: 22)
-                : IconButton(icon: const Icon(Icons.check_circle_outline), onPressed: () => _checkin(p['booking_id'])),
+                : !isPaid
+                  ? const Icon(Icons.warning_amber, color: AppTheme.error, size: 22)
+                  : IconButton(icon: const Icon(Icons.check_circle_outline), onPressed: () => _checkin(p['booking_id'])),
             );
           },
         ))),
