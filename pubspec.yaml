@@ -18,6 +18,8 @@ dependencies:
   google_fonts: ^6.2.1
   shimmer: ^3.0.0
   mobile_scanner: ^5.1.1
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
   url_launcher: ^6.2.5
   sqflite: ^2.4.1
   connectivity_plus: ^6.1.1

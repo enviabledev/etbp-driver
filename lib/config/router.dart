@@ -12,6 +12,7 @@ import 'package:etbp_driver/screens/manifest/qr_scanner_screen.dart';
 import 'package:etbp_driver/screens/trips/inspection_screen.dart';
 import 'package:etbp_driver/screens/trips/incident_report_screen.dart';
 import 'package:etbp_driver/screens/trips/trip_summary_screen.dart';
+import 'package:etbp_driver/screens/trips/navigation_screen.dart';
 import 'package:etbp_driver/screens/messaging/chat_screen.dart';
 
 final _shellKey = GlobalKey<NavigatorState>();
@@ -37,6 +38,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/trips/:id/inspection', builder: (_, state) => InspectionScreen(tripId: state.pathParameters['id']!)),
       GoRoute(path: '/trips/:id/incident', builder: (_, state) => IncidentReportScreen(tripId: state.pathParameters['id']!)),
       GoRoute(path: '/trips/:id/summary', builder: (_, state) => TripSummaryScreen(tripId: state.pathParameters['id']!)),
+      GoRoute(path: '/trips/:id/navigation', builder: (_, state) => NavigationScreen(tripId: state.pathParameters['id']!)),
       GoRoute(path: '/chat/:id', builder: (_, state) => ChatScreen(conversationId: state.pathParameters['id']!)),
     ],
   );
