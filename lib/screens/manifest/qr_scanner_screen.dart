@@ -83,10 +83,19 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
         _processing = false;
       });
     } catch (e) {
-      setState(() {
-        _result = _ScanResult(type: _ResultType.error, message: e.toString());
-        _processing = false;
-      });
+      final msg = e.toString();
+      if (msg.contains('already') || msg.contains('409')) {
+        // Already checked in — show orange warning, not red error
+        setState(() {
+          _result = _ScanResult(type: _ResultType.alreadyCheckedIn, message: 'Already Checked In', detail: entry.passengerName);
+          _processing = false;
+        });
+      } else {
+        setState(() {
+          _result = _ScanResult(type: _ResultType.error, message: 'Check-in failed', detail: msg.length > 60 ? msg.substring(0, 60) : msg);
+          _processing = false;
+        });
+      }
     }
     _autoDismissResult();
   }
