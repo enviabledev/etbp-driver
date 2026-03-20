@@ -73,12 +73,13 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen> {
       final api = ref.read(apiClientProvider);
       final res = await api.post(Endpoints.driverCheckin(widget.tripId, entry.bookingId));
       HapticFeedback.mediumImpact();
+      final extraLuggage = res.data['extra_luggage_count'] ?? 0;
       setState(() {
         _checkedCount++;
         _result = _ScanResult(
           type: _ResultType.success,
           message: res.data['passenger_name'] ?? entry.passengerName,
-          detail: 'Seat ${res.data['seat_number'] ?? entry.seatNumber ?? '?'}',
+          detail: 'Seat ${res.data['seat_number'] ?? entry.seatNumber ?? '?'}${extraLuggage > 0 ? ' • 🧳 Extra luggage: $extraLuggage bag${extraLuggage > 1 ? 's' : ''}' : ''}',
         );
         _processing = false;
       });

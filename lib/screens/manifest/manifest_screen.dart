@@ -78,7 +78,15 @@ class _ManifestScreenState extends ConsumerState<ManifestScreen> {
             return ListTile(
               leading: CircleAvatar(backgroundColor: isCheckedIn ? AppTheme.success.withValues(alpha: 0.1) : !isPaid ? AppTheme.error.withValues(alpha: 0.1) : AppTheme.border, radius: 18,
                 child: Text(p['seat_number'] ?? '?', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: isCheckedIn ? AppTheme.success : !isPaid ? AppTheme.error : AppTheme.textPrimary))),
-              title: Text(p['passenger_name'] ?? '—', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              title: Row(children: [
+                Expanded(child: Text(p['passenger_name'] ?? '—', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+                if ((p['extra_luggage'] ?? 0) > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                    child: Text('🧳 ×${p['extra_luggage']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary)),
+                  ),
+              ]),
               subtitle: Text(!isPaid ? 'UNPAID — direct to agent' : (p['phone'] ?? ''), style: TextStyle(fontSize: 12, color: !isPaid ? AppTheme.error : null)),
               trailing: isCheckedIn
                 ? const Icon(Icons.check_circle, color: AppTheme.success, size: 22)
