@@ -15,6 +15,7 @@ import 'package:etbp_driver/screens/trips/trip_summary_screen.dart';
 import 'package:etbp_driver/screens/trips/navigation_screen.dart';
 import 'package:etbp_driver/screens/messaging/chat_screen.dart';
 import 'package:etbp_driver/screens/messaging/conversations_screen.dart';
+import 'package:etbp_driver/widgets/common/offline_banner.dart';
 
 final _shellKey = GlobalKey<NavigatorState>();
 
@@ -52,7 +53,10 @@ class _Shell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: child,
+      body: Column(children: [
+        const OfflineBanner(),
+        Expanded(child: child),
+      ]),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index(GoRouterState.of(context).uri.path),
         onTap: (i) => [() => context.go('/home'), () => context.go('/trips'), () => context.go('/messages'), () => context.go('/profile')][i](),
