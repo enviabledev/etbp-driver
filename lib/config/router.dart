@@ -14,6 +14,7 @@ import 'package:etbp_driver/screens/trips/incident_report_screen.dart';
 import 'package:etbp_driver/screens/trips/trip_summary_screen.dart';
 import 'package:etbp_driver/screens/trips/navigation_screen.dart';
 import 'package:etbp_driver/screens/messaging/chat_screen.dart';
+import 'package:etbp_driver/screens/messaging/conversations_screen.dart';
 
 final _shellKey = GlobalKey<NavigatorState>();
 
@@ -29,6 +30,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
           GoRoute(path: '/trips', builder: (_, __) => const TripsScreen()),
+          GoRoute(path: '/messages', builder: (_, __) => const ConversationsScreen()),
           GoRoute(path: '/profile', builder: (_, __) => const ProfileScreen()),
         ],
       ),
@@ -53,10 +55,11 @@ class _Shell extends StatelessWidget {
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index(GoRouterState.of(context).uri.path),
-        onTap: (i) => [() => context.go('/home'), () => context.go('/trips'), () => context.go('/profile')][i](),
+        onTap: (i) => [() => context.go('/home'), () => context.go('/trips'), () => context.go('/messages'), () => context.go('/profile')][i](),
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.directions_bus_outlined), activeIcon: Icon(Icons.directions_bus), label: 'My Trips'),
+          BottomNavigationBarItem(icon: Icon(Icons.directions_bus_outlined), activeIcon: Icon(Icons.directions_bus), label: 'Trips'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), activeIcon: Icon(Icons.chat_bubble), label: 'Messages'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), activeIcon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
@@ -64,7 +67,8 @@ class _Shell extends StatelessWidget {
   }
   int _index(String path) {
     if (path.startsWith('/trips')) return 1;
-    if (path.startsWith('/profile')) return 2;
+    if (path.startsWith('/messages')) return 2;
+    if (path.startsWith('/profile')) return 3;
     return 0;
   }
 }
